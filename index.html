@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   Trick-or-Treat Town
+  </title>
+  <style>
+   
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap');
+:root{
+  color-scheme:dark
+}
+*{
+  box-sizing:border-box
+}
+body{
+  margin:0;
+  background:radial-gradient(ellipse at 50% 10%,#29385c,#0c1125 70%);
+  color:#fff4dc;
+  font-family:Fredoka,'Trebuchet MS',sans-serif;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  padding:15px
+}
+#app{
+  width:min(1100px,100%)
+}
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin:0 0 10px
+}
+h1{
+  margin:0;
+  font-size:clamp(23px,4vw,39px);
+  color:#ffd277;
+  text-shadow:3px 3px #6e3659
+}
+header small{
+  color:#d8d1ed
+}
+#frame{
+  position:relative;
+  overflow:hidden;
+  border:5px solid #745078;
+  border-radius:19px;
+  box-shadow:0 15px 0 #13172c,0 25px 60px #050914;
+  background:#131b37
+}
+canvas{
+  display:block;
+  width:100%;
+  height:auto;
+  image-rendering:pixelated;
+  touch-action:none
+}
+#hud{
+  position:absolute;
+  top:12px;
+  left:12px;
+  right:12px;
+  display:flex;
+  gap:8px;
+  justify-content:space-between;
+  pointer-events:none;
+  flex-wrap:wrap
+}
+.pill{
+  background:#1c2342e8;
+  border:2px solid #b98d8b;
+  border-radius:20px;
+  padding:7px 12px;
+  font-size:14px;
+  box-shadow:0 3px #101326
+}
+#toast{
+  position:absolute;
+  top:67px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#fff1c9;
+  color:#4c3153;
+  border:3px solid #ffb65d;
+  border-radius:12px;
+  padding:9px 16px;
+  white-space:normal;
+  text-align:center;
+  max-width:85%;
+  font-weight:700;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .15s
+}
+#toast.show{
+  opacity:1
+}
+.overlay{
+  position:absolute;
+  inset:0;
+  background:#10182de8;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  overflow-y:auto
+}
+.panel{
+  background:#252b4c;
+  border:4px solid #b27ca4;
+  border-radius:20px;
+  box-shadow:0 9px #10132a;
+  padding:20px;
+  width:min(720px,100%);
+  text-align:center
+}
+.panel h2{
+  margin:0 0 6px;
+  color:#ffd17d;
+  font-size:clamp(25px,4vw,36px)
+}
+.panel p{
+  margin:8px auto 14px;
+  color:#e5dff5;
+  max-width:590px
+}
+.costumes{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:9px;
+  margin:15px 0
+}
+.costume{
+  border:3px solid #5f638b;
+  background:#353b60;
+  color:#fff2d6;
+  border-radius:13px;
+  cursor:pointer;
+  padding:9px 4px;
+  font:inherit;
+  transition:transform .12s
+}
+.costume:hover{
+  transform:translateY(-3px)
+}
+.costume.selected{
+  border-color:#ffce73;
+  background:#66527c;
+  box-shadow:0 0 0 2px #ffce7355
+}
+.costume canvas{
+  width:70px;
+  height:90px;
+  margin:auto;
+  image-rendering:pixelated
+}
+.costume span{
+  display:block;
+  margin-top:3px;
+  font-size:13px
+}
+button.primary{
+  background:#ffc66f;
+  color:#3b2a48;
+  border:0;
+  border-bottom:5px solid #d58b5a;
+  border-radius:13px;
+  padding:11px 28px;
+  font:700 19px Fredoka,'Trebuchet MS',sans-serif;
+  cursor:pointer
+}
+button.primary:hover{
+  filter:brightness(1.08)
+}
+button.primary:active{
+  transform:translateY(3px);
+  border-bottom-width:2px
+}
+.help{
+  margin-top:12px;
+  color:#c7c3e2;
+  font-size:13px
+}
+#mobile{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 5px;
+  gap:10px
+}
+.pad{
+  display:grid;
+  grid-template-columns:repeat(3,48px);
+  grid-template-rows:repeat(2,44px);
+  gap:5px
+}
+.pad button,.action{
+  background:#343c65;
+  border:2px solid #9b8bb8;
+  color:#fff0d0;
+  border-radius:12px;
+  font-size:22px;
+  font-weight:bold;
+  touch-action:none;
+  user-select:none
+}
+.pad button:active,.action:active{
+  background:#6c638e
+}
+.pad .up{
+  grid-column:2
+}
+.pad .left{
+  grid-column:1;
+  grid-row:2
+}
+.pad .down{
+  grid-column:2;
+  grid-row:2
+}
+.pad .right{
+  grid-column:3;
+  grid-row:2
+}
+.action{
+  padding:12px 22px;
+  font:700 17px Fredoka,'Trebuchet MS',sans-serif;
+  background:#84547e
+}
+.foot{
+  font-size:13px;
+  color:#bcb7d4;
+  text-align:center;
+  margin:0 0 8px
+}
+@media(min-width:800px){
+  #mobile{
+    display:none
+  }
+}
+@media(max-width:550px){
+  .costumes{
+    grid-template-columns:repeat(2,1fr)
+  }
+  .panel{
+    padding:12px
+  }
+  .costume canvas{
+    width:50px;
+    height:64px
+  }
+  .costume{
+    padding:5px
+  }
+  .pill{
+    font-size:11px;
+    padding:5px 8px
+  }
+  #hud{
+    top:6px;
+    left:6px;
+    right:6px;
+    gap:4px
+  }
+  #toast{
+    top:55px;
+    font-size:12px
+  }
+}
+
+  </style>
+ </head>
+ <body>
+  <main id="app">
+   <header>
+    <div>
+     <h1>
+      🎃 Trick-or-Treat Town
+     </h1>
+     <small>
+      A cozy Halloween neighborhood adventure
+     </small>
+    </div>
+    <small>
+     ✨ Collect candy • Explore • Visit every house
+    </small>
+   </header>
+   <div id="frame">
+    <canvas aria-label="Halloween neighborhood game" height="600" id="game" width="960">
+    </canvas>
+    <div id="hud">
+     <div class="pill" id="candy">
+      🍬 Candy: 0
+     </div>
+     <div class="pill" id="houses">
+      🏠 Houses: 0 / 8
+     </div>
+     <div class="pill" id="clock">
+      🌙 Time: 3:00
+     </div>
+    </div>
+    <div id="toast" role="status">
+    </div>
+    <div class="overlay" id="overlay">
+     <div class="panel" id="panel">
+      <h2>
+       Pick your Halloween costume!
+      </h2>
+      <p>
+       Dress up, explore a friendly neighborhood, knock on glowing doors, and fill your candy bucket before the night ends!
+      </p>
+      <div class="costumes" id="costumes">
+      </div>
+      <button class="primary" id="start">
+       Let's Trick-or-Treat! ✨
+      </button>
+      <div class="help">
+       Move: WASD / Arrow Keys · Knock: E or Space near a door · Touch controls supported
+      </div>
+     </div>
+    </div>
+   </div>
+   <div id="mobile">
+    <div class="pad">
+     <button class="up" data-dir="up">
+      ▲
+     </button>
+     <button class="left" data-dir="left">
+      ◀
+     </button>
+     <button class="down" data-dir="down">
+      ▼
+     </button>
+     <button class="right" data-dir="right">
+      ▶
+     </button>
+    </div>
+    <button class="action" id="knock">
+     🍬 KNOCK!
+    </button>
+   </div>
+   <p class="foot">
+    A cheerful, family-friendly Halloween mini-game • Single HTML file • No assets required
+   </p>
+  </main>
+  <script>
+   
+(()=>{
+  'use strict';
+  const canvas=document.getElementById('game');
+  let ctx=canvas.getContext('2d');
+  ctx.imageSmoothingEnabled=false;
+  const W=960,H=600;
+  const overlay=document.getElementById('overlay'),panel=document.getElementById('panel'),toast=document.getElementById('toast');
+  let costume=0,mode='menu',candy=0,visited=new Set(),time=180,last=0,anim=0,particles=[],decor=[],knockCooldown=0,flash=0;
+  const keys=new Set();
+  const player={
+    x:480,y:305,dir:0,walk:0
+  };
+  const names=['Pumpkin Pal','Friendly Ghost','Little Witch','Space Explorer'];
+  const palette=[['#f5a546','#de6e3c'],['#fff9e6','#c7d3eb'],['#a17bd6','#714caa'],['#73d8dc','#3f96bc']];
+  const houses=[{
+    x:65,y:54,c:'#9d77aa',roof:'#68476d',door:'#ffd478',label:'Maple Manor'
+  },{
+    x:275,y:54,c:'#8bb8ac',roof:'#466b78',door:'#ffcb74',label:'Candy Cottage'
+  },{
+    x:565,y:54,c:'#dc9b89',roof:'#935b6c',door:'#ffcb74',label:'Moonbeam Home'
+  },{
+    x:775,y:54,c:'#a3a6d8',roof:'#6b638e',door:'#ffd478',label:'Star House'
+  },{
+    x:65,y:408,c:'#d4b17e',roof:'#916e61',door:'#ffd478',label:'Pumpkin Place'
+  },{
+    x:275,y:408,c:'#ac9cd1',roof:'#65588d',door:'#ffd478',label:'Sprinkle House'
+  },{
+    x:565,y:408,c:'#8ec0bd',roof:'#4e7780',door:'#ffd478',label:'Autumn House'
+  },{
+    x:775,y:408,c:'#d4a4bb',roof:'#8d617f',door:'#ffd478',label:'Twinkle House'
+  }];
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const rect=(x,y,w,h,c)=>{
+    ctx.fillStyle=c;
+    ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))
+  };
+  function ellipse(x,y,rx,ry,c){
+    ctx.fillStyle=c;
+    ctx.beginPath();
+    ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);
+    ctx.fill()
+  }
+  function text(t,x,y,size=15,c='#fff3d8',align='center'){
+    ctx.font=`700 ${size}px Trebuchet MS,sans-serif`;
+    ctx.textAlign=align;
+    ctx.fillStyle='#23233b';
+    ctx.fillText(t,x+2,y+2);
+    ctx.fillStyle=c;
+    ctx.fillText(t,x,y)
+  }
+  function star(x,y,r=3){
+    rect(x-r,y,2*r+1,2,'#fff0bb');
+    rect(x,y-r,2,2*r+1,'#fff0bb')
+  }
+  function drawCharacter(x,y,s=1,type=costume,step=0){
+    ctx.save();
+    ctx.translate(Math.round(x),Math.round(y));
+    ctx.scale(s,s);
+    ellipse(0,0,15,5,'#22294077');
+    let bounce=Math.sin(step)*2;
+    ctx.translate(0,bounce);
+    rect(-8,2,6,10,'#3d3d61');
+    rect(3,2,6,10,'#3d3d61');
+    if(type===0){
+      rect(-12,-22,24,27,'#f39b3d');
+      rect(-9,-26,18,8,'#f7b54b');
+      rect(-3,-32,6,7,'#608d57');
+      rect(-7,-17,5,5,'#28273c');
+      rect(3,-17,5,5,'#28273c');
+      rect(-4,-8,8,3,'#4c2d37');
+      rect(-14,-13,4,14,'#f4ac62');
+      rect(10,-13,4,14,'#f4ac62')
+    }
+    else if(type===1){
+      rect(-12,-26,24,32,'#f7f7ec');
+      rect(-9,-31,18,9,'#f7f7ec');
+      rect(-12,2,6,7,'#f7f7ec');
+      rect(-2,2,6,7,'#f7f7ec');
+      rect(8,2,5,7,'#f7f7ec');
+      rect(-7,-17,5,7,'#4a5576');
+      rect(3,-17,5,7,'#4a5576');
+      rect(-2,-6,4,5,'#e9a2b0')
+    }
+    else if(type===2){
+      rect(-11,-22,22,27,'#9467b9');
+      rect(-8,-28,16,10,'#f2b996');
+      rect(-5,-22,3,3,'#49364f');
+      rect(4,-22,3,3,'#49364f');
+      rect(-16,-31,32,5,'#6a4c96');
+      ctx.fillStyle='#6a4c96';
+      ctx.beginPath();
+      ctx.moveTo(-10,-31);
+      ctx.lineTo(0,-53);
+      ctx.lineTo(10,-31);
+      ctx.fill();
+      rect(-14,-14,4,14,'#f2b996');
+      rect(10,-14,4,14,'#f2b996')
+    }
+    else{
+      rect(-12,-22,24,27,'#70cad5');
+      rect(-10,-34,20,16,'#c1f3ee');
+      rect(-8,-31,16,10,'#5b8fbd');
+      rect(-6,-28,4,3,'#fff3de');
+      rect(4,-28,4,3,'#fff3de');
+      rect(-15,-17,5,17,'#70cad5');
+      rect(10,-17,5,17,'#70cad5');
+      rect(-7,5,5,7,'#78e2e0');
+      rect(3,5,5,7,'#78e2e0')
+    }
+    rect(10,-2,11,9,'#e9b36b');
+    rect(11,-4,9,4,'#f7d99c');
+    rect(12,0,7,4,'#c5875a');
+    ctx.restore()
+  }
+  function drawHouse(h,i){
+    const {
+      x,y,c,roof,door
+    }
+    =h;
+    ellipse(x+75,y+148,84,12,'#16213d55');
+    rect(x+12,y+41,126,99,c);
+    rect(x+7,y+133,138,8,'#735f77');
+    ctx.fillStyle=roof;
+    ctx.beginPath();
+    ctx.moveTo(x,y+45);
+    ctx.lineTo(x+75,y-5);
+    ctx.lineTo(x+150,y+45);
+    ctx.fill();
+    rect(x+20,y+48,27,33,'#ffe5a1');
+    rect(x+101,y+48,27,33,'#ffe5a1');
+    rect(x+32,y+48,3,33,'#a77774');
+    rect(x+113,y+48,3,33,'#a77774');
+    rect(x+20,y+62,27,3,'#a77774');
+    rect(x+101,y+62,27,3,'#a77774');
+    rect(x+57,y+85,37,54,visited.has(i)?'#786c87':'#805c77');
+    rect(x+62,y+90,27,49,visited.has(i)?'#8d819c':'#b57a7c');
+    ellipse(x+84,y+116,3,3,'#ffdd88');
+    if(!visited.has(i)){
+      ellipse(x+75,y+79,21,8,'#f8d58122');
+      text('!',x+75,y+80,18,'#ffe5a0')
+    }
+    else{
+      text('✓',x+75,y+80,18,'#b6f4c5')
+    }
+    rect(x+2,y+140,146,4,'#3f4965');
+    text(h.label,x+75,y+159,12,'#f5dfc3');
+    for(let j=0;
+    j<3;
+    j++){
+      let px=x+5+j*9;
+      rect(px,y+132,5,7,'#efb65c')
+    }
+  }
+  function pumpkin(x,y,s=1){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.scale(s,s);
+    ellipse(0,0,12,10,'#dd7e40');
+    ellipse(-5,0,6,9,'#f7a24b');
+    ellipse(5,0,6,9,'#f7a24b');
+    rect(-2,-14,4,6,'#56875a');
+    rect(-6,-2,3,3,'#654357');
+    rect(4,-2,3,3,'#654357');
+    rect(-2,4,5,2,'#654357');
+    ctx.restore()
+  }
+  function drawWorld(){
+    rect(0,0,W,H,'#222d4d');
+    for(let i=0;
+    i<85;
+    i++){
+      let x=(i*137+33)%W,y=(i*73+19)%H;
+      rect(x,y,2,2,i%3?'#415579':'#6b6581')
+    }
+    rect(0,0,W,30,'#19223c');
+    rect(0,570,W,30,'#19223c');
+    for(let i=0;
+    i<8;
+    i++){
+      rect(i*125+22,0,5,24,'#4e6580');
+      rect(i*125+18,16,13,7,'#f4ca78')
+    }
+    rect(0,198,W,204,'#59677a');
+    rect(0,207,W,185,'#6d7988');
+    rect(0,285,W,30,'#65717e');
+    for(let i=0;
+    i<13;
+    i++)rect(i*80+16,297,42,5,'#c3b4a0');
+    rect(0,186,W,17,'#b7a2a2');
+    rect(0,397,W,13,'#b7a2a2');
+    for(let i=0;
+    i<16;
+    i++){
+      let x=i*64+14;
+      rect(x,189,3,7,'#ede0ca');
+      rect(x,402,3,6,'#ede0ca')
+    }
+    for(let i=0;
+    i<8;
+    i++){
+      let h=houses[i];
+      drawHouse(h,i);
+      pumpkin(h.x+18,h.y+138,.7);
+      pumpkin(h.x+132,h.y+138,.6)
+    }
+    for(let i=0;
+    i<15;
+    i++){
+      let x=30+i*68;
+      rect(x,181,8,8,'#688e76');
+      rect(x+3,177,3,5,'#a4b579');
+      rect(x,412,8,8,'#688e76')
+    }
+    for(let i=0;
+    i<6;
+    i++){
+      let x=80+i*170;
+      rect(x,231,5,23,'#4b485e');
+      ellipse(x+2,229,10,5,'#ffe0a2');
+      ellipse(x+2,229,23,14,'#ffd18a15')
+    }
+    for(let i=0;
+    i<12;
+    i++){
+      let x=45+i*83;
+      ellipse(x,380,3,2,'#ddac79');
+      ellipse(x+18,227,3,2,'#ddac79')
+    }
+    const twinkle=(Math.sin(anim*2)+1)/2;
+    for(let i=0;
+    i<12;
+    i++){
+      let x=(i*97+29)%W,y=258+(i%3)*40;
+      rect(x,y,2,2,`rgba(255,231,165,${.18+twinkle*.4})`)
+    }
+    for(const p of particles){
+      ctx.globalAlpha=Math.max(0,p.life/p.max);
+      text(p.icon,p.x,p.y,17);
+      ctx.globalAlpha=1
+    }
+    drawCharacter(player.x,player.y,1.35,costume,player.walk);
+    if(mode==='play'){
+      const near=nearest();
+      if(near&&near.d<77&&!visited.has(near.i)){
+        text('Press E / SPACE to knock!',near.h.x+75,near.h.y+178,14,'#fff1b4')
+      }
+    }
+  }
+  function nearest(){
+    let best=null;
+    houses.forEach((h,i)=>{
+      let dx=player.x-(h.x+75),dy=player.y-(h.y+(i<4?166:-9)),d=Math.hypot(dx,dy);
+      if(!best||d<best.d)best={
+        h,i,d
+      }
+    });
+    return best
+  }
+  function message(s){
+    toast.textContent=s;
+    toast.classList.add('show');
+    clearTimeout(message.t);
+    message.t=setTimeout(()=>toast.classList.remove('show'),2200)
+  }
+  function burst(x,y){
+    for(let i=0;
+    i<17;
+    i++)particles.push({
+      x,y,vx:rand(-80,80),vy:rand(-115,-35),life:1,max:1,icon:['🍬','✨','⭐','🍭'][i%4]
+    })
+  }
+  function knock(){
+    if(mode!=='play'||knockCooldown>0)return;
+    const n=nearest();
+    if(!n||n.d>83){
+      message('Walk up to a glowing front door! 🏡');
+      return
+    }
+    if(visited.has(n.i)){
+      message('You already visited this house! 🎃');
+      return
+    }
+    visited.add(n.i);
+    knockCooldown=.6;
+    let amount=5+Math.floor(Math.random()*11);
+    candy+=amount;
+    burst(player.x,player.y-24);
+    message(`Trick or treat! ${n.h.label} gave you ${amount} candies! 🍬`);
+    updateHud();
+    if(visited.size===8)setTimeout(()=>finish(true),1100)
+  }
+  function updateHud(){
+    document.getElementById('candy').textContent=`🍬 Candy: ${candy}`;
+    document.getElementById('houses').textContent=`🏠 Houses: ${visited.size} / 8`;
+    document.getElementById('clock').textContent=`🌙 Time: ${Math.floor(time/60)}:${String(Math.floor(time%60)).padStart(2,'0')}`
+  }
+  function finish(won){
+    if(mode!=='play')return;
+    mode='end';
+    overlay.style.display='flex';
+    let rank=visited.size===8?'Neighborhood Superstar!':visited.size>=5?'Candy Collector!':'Halloween Helper!';
+    panel.innerHTML=`<h2>${won?'🎉 Happy Halloween!':'🌙 The Night Is Over!'}</h2><p style="font-size:21px">${rank}</p><p>You collected <b>${candy} candies</b> and visited <b>${visited.size} of 8 houses</b>.</p><p>${won?'Every neighbor loved your costume!':'There are more treats waiting next time!'}</p><button class="primary" id="again">Play Again 🎃</button>`;
+    document.getElementById('again').onclick=()=>{
+      mode='menu';
+      setupMenu()
+    }
+  }
+  function start(){
+    mode='play';
+    overlay.style.display='none';
+    candy=0;
+    visited.clear();
+    time=180;
+    player.x=480;
+    player.y=305;
+    player.walk=0;
+    particles=[];
+    knockCooldown=0;
+    updateHud();
+    message('Visit each house! Walk toward its door and knock! 🍭')
+  }
+  function setupMenu(){
+    overlay.style.display='flex';
+    panel.innerHTML=`<h2>Pick your Halloween costume!</h2><p>Dress up, explore a friendly neighborhood, knock on glowing doors, and fill your candy bucket before the night ends!</p><div class="costumes" id="costumes"></div><button class="primary" id="start">Let's Trick-or-Treat! ✨</button><div class="help">Move: WASD / Arrow Keys · Knock: E or Space near a door · Touch controls supported</div>`;
+    const wrap=document.getElementById('costumes');
+    names.forEach((name,i)=>{
+      const b=document.createElement('button');
+      b.className='costume'+(i===costume?' selected':'');
+      b.innerHTML=`<canvas width="70" height="90"></canvas><span>${name}</span>`;
+      wrap.append(b);
+      const c=b.querySelector('canvas'),old=ctx;
+      const preview=c.getContext('2d');
+      preview.imageSmoothingEnabled=false;
+      const original=canvas;
+      // render preview using temporary context
+      const saved=ctx;
+      ctx=preview;
+      drawCharacter(35,67,1.6,i,0);
+      ctx=saved;
+      b.onclick=()=>{
+        costume=i;
+        wrap.querySelectorAll('button').forEach(v=>v.classList.remove('selected'));
+        b.classList.add('selected')
+      }
+    });
+    document.getElementById('start').onclick=start
+  }
+  function update(dt){
+    anim+=dt;
+    if(mode!=='play')return;
+    time-=dt;
+    knockCooldown=Math.max(0,knockCooldown-dt);
+    if(time<=0){
+      time=0;
+      finish(false)
+    }
+    let dx=0,dy=0;
+    if(keys.has('left')||keys.has('arrowleft')||keys.has('a'))dx--;
+    if(keys.has('right')||keys.has('arrowright')||keys.has('d'))dx++;
+    if(keys.has('up')||keys.has('arrowup')||keys.has('w'))dy--;
+    if(keys.has('down')||keys.has('arrowdown')||keys.has('s'))dy++;
+    if(dx||dy){
+      let len=Math.hypot(dx,dy),speed=185;
+      player.x+=dx/len*speed*dt;
+      player.y+=dy/len*speed*dt;
+      player.walk+=dt*12
+    }
+    player.x=Math.max(22,Math.min(W-22,player.x));
+    player.y=Math.max(222,Math.min(379,player.y));
+    particles=particles.filter(p=>p.life>0);
+    for(const p of particles){
+      p.x+=p.vx*dt;
+      p.y+=p.vy*dt;
+      p.vy+=95*dt;
+      p.life-=dt
+    }
+    updateHud()
+  }
+  function loop(ts){
+    const dt=Math.min((ts-last)/1000||0,.05);
+    last=ts;
+    update(dt);
+    drawWorld();
+    requestAnimationFrame(loop)
+  }
+  window.addEventListener('keydown',e=>{
+    let k=e.key.toLowerCase();
+    if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();
+    if(k==='e'||k===' ')knock();
+    keys.add(k)
+  });
+  window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+  window.addEventListener('blur',()=>keys.clear());
+  document.querySelectorAll('[data-dir]').forEach(b=>{
+    const d=b.dataset.dir;
+    const down=e=>{
+      e.preventDefault();
+      keys.add(d);
+      b.setPointerCapture?.(e.pointerId)
+    };
+    const up=e=>{
+      e.preventDefault();
+      keys.delete(d)
+    };
+    b.addEventListener('pointerdown',down);
+    b.addEventListener('pointerup',up);
+    b.addEventListener('pointercancel',up);
+    b.addEventListener('lostpointercapture',up)
+  });
+  document.getElementById('knock').onclick=knock;
+  setupMenu();
+  requestAnimationFrame(loop)
+})();
+
+  </script>
+ </body>
+</html>
